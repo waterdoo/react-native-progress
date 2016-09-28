@@ -5,51 +5,119 @@ import React, {
   PropTypes,
 } from 'react';
 
-import { ART } from 'react-native';
+import {
+  ART,
+  Text,
+  View,
+} from 'react-native';
 
-function makeCirclePath(x, y, radius, direction) {
-  const arcMethod = direction === 'counter-clockwise' ? 'counterArc' : 'arc';
+import Arc from './Shapes/Arc';
 
-  return ART.Path()
-    .moveTo(x, y)
-    .move(radius, 0)
-    [arcMethod](0, radius * 2, radius, radius)
-    [arcMethod](0, radius * -2, radius, radius)
-    .close();
-}
-
-export default class Circle extends Component {
+export default class ProgressCircle extends Component {
   static propTypes = {
-    radius: PropTypes.number.isRequired,
-    offset: PropTypes.shape({
-      top: PropTypes.number,
-      left: PropTypes.number,
-    }),
-    strokeWidth: PropTypes.number,
+    borderColor: PropTypes.string,
+    borderWidth: PropTypes.number,
+    color: PropTypes.string,
     direction: PropTypes.oneOf(['clockwise', 'counter-clockwise']),
+    formatText: PropTypes.func,
+    indeterminate: PropTypes.bool,
+    progress: PropTypes.number,
+    showsText: PropTypes.bool,
+    size: PropTypes.number,
+    textStyle: PropTypes.any,
+    thickness: PropTypes.number,
+    unfilledColor: PropTypes.string,
   };
 
   static defaultProps = {
-    offset: { top: 0, left: 0 },
-    strokeWidth: 0,
+    borderWidth: 1,
+    color: 'rgba(0, 122, 255, 1)',
     direction: 'clockwise',
+    formatText: progress => Math.round(progress * 100) + '%',
+    progress: 0,
+    showsText: false,
+    size: 40,
+    thickness: 3,
   };
 
   render() {
-    const { radius, offset, strokeWidth, direction, ...restProps } = this.props;
-    const path = makeCirclePath(
-      (offset.left || 0) + strokeWidth / 2,
-      (offset.top || 0) + strokeWidth / 2,
-      radius - strokeWidth / 2,
-      direction
-    );
+    let {
+      borderColor,
+      borderWidth,
+      color,
+      children,
+      direction,
+      formatText,
+      indeterminate,
+      progress,
+      showsText,
+      size,
+      textStyle,
+      thickness,
+      unfilledColor,
+      text,
+      ...restProps,
+    } = this.props;
+
+    borderWidth = borderWidth || (indeterminate ? 1 : 0);
+
+    const radius = size / 2 - borderWidth;
+    const offset = {
+      top: borderWidth,
+      left: borderWidth,
+    };
+    const textOffset = borderWidth + thickness;
+    const textSize = size - textOffset * 2;
+
     return (
-      <ART.Shape
-        d={path}
-        strokeCap="butt"
-        strokeWidth={strokeWidth}
-        {...restProps}
-      />
+      <View {...restProps}>
+        <ART.Surface
+          width={size}
+          height={size}>
+          {unfilledColor && progress !== 1 ? (<Arc
+            radius={radius}
+            offset={offset}
+            startAngle={progress * 2 * Math.PI}
+            endAngle={2 * Math.PI}
+            direction={direction}
+            stroke={unfilledColor}
+            strokeWidth={thickness} />) : false}
+          {!indeterminate && progress ? (<Arc
+            radius={radius}
+            offset={offset}
+            startAngle={0}
+            endAngle={progress * 2 * Math.PI}
+            direction={direction}
+            stroke={color}
+            strokeWidth={thickness} />) : false}
+          {borderWidth ?
+            (<Arc
+              radius={size / 2}
+              startAngle={0}
+              endAngle={(indeterminate ? 1.8 : 2) * Math.PI}
+              stroke={borderColor || color}
+              strokeWidth={borderWidth} />) : false}
+        </ART.Surface>
+        {!indeterminate && progress && showsText ? (
+          <View style={{
+            position: 'absolute',
+            left: textOffset,
+            top: textOffset,
+            width: textSize,
+            height: textSize,
+            borderRadius: textSize / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Text style={[{
+              color: color,
+              fontSize: textSize / 4.5,
+              fontWeight: '300',
+            }, textStyle]}>{text}</Text>
+          </View>
+        ) : false}
+        {children}
+      </View>
     );
   }
 }
