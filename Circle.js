@@ -53,6 +53,7 @@ export default class ProgressCircle extends Component {
       textStyle,
       thickness,
       unfilledColor,
+      text,
       ...restProps,
     } = this.props;
 
@@ -110,7 +111,7 @@ export default class ProgressCircle extends Component {
               color: color,
               fontSize: textSize / 4.5,
               fontWeight: '300',
-            }, textStyle]}>{formatText(progress)}</Text>
+            }, textStyle]}>{text}</Text>
           </View>
         ) : false}
         {children}
