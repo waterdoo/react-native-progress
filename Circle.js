@@ -96,7 +96,7 @@ export default class ProgressCircle extends Component {
               stroke={borderColor || color}
               strokeWidth={borderWidth} />) : false}
         </ART.Surface>
-        {!indeterminate && progress && showsText ? (
+        {!indeterminate && showsText ? (
           <View style={{
             position: 'absolute',
             left: textOffset,
